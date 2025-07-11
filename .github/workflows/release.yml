@@ -45,7 +45,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           commitish: ${{ github.sha }}
-          generate_release_notes: true # <-- Magie de la génération automatique !
+          
 
       - name: Upload Release Asset
         id: upload-release-asset
