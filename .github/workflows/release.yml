@@ -31,14 +31,14 @@ jobs:
 
       - name: Package binary into a tar.gz archive
         run: |
-          ARCHIVE_NAME="textfile-exporter-${{ env.VERSION }}-${{ runner.os }}-${{ runner.arch }}"
+          ARCHIVE_NAME="textfile-exporter-${{ env.VERSION }}.linux-amd64"
           tar -czvf "${ARCHIVE_NAME}.tar.gz" textfile-exporter LICENSE README.md
           echo "ARCHIVE_PATH=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
           echo "ARCHIVE_FILENAME=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1.1.4
+        uses: actions/create-release@v1.1.8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
