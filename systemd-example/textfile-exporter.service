@@ -1,11 +1,27 @@
 [Unit]
-Description=Textfile exporter, reads prom files and exposes on socket
+Description=Prometheus Textfile Exporter
+Documentation=https://github.com/SckyzO/textfile-exporter
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/textfile-exporter -p /var/local/lib/textfile_exporter -i 5s -l 9014 -o 1m -x "/var/local/lib/textfile_exporter/0_oldprom.sh {}"
-User=textfile_exporter
+User=textfile-exporter
+Group=textfile-exporter
+ExecStart=/usr/local/bin/textfile-exporter \
+  --textfile.directory="/var/lib/textfile-exporter" \
+  --web.listen-address=":9014"
+
+# Security Hardening
+ProtectSystem=full
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

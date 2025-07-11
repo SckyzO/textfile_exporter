@@ -57,6 +57,45 @@ To check the version of the binary, use the `--version` flag:
 ./textfile-exporter --version
 ```
 
+## Deployment as a systemd Service
+
+To run the exporter as a systemd service on a Linux system, follow these steps:
+
+1.  **Create a dedicated user and group**: It is recommended to run the exporter with a non-privileged user.
+
+    ```bash
+    sudo useradd --no-create-home --shell /bin/false textfile-exporter
+    ```
+
+2.  **Create the metrics directory**: This is where your applications will drop their `.prom` files.
+
+    ```bash
+    sudo mkdir /var/lib/textfile-exporter
+    sudo chown textfile-exporter:textfile-exporter /var/lib/textfile-exporter
+    ```
+
+3.  **Install the binary**: Copy the compiled `textfile-exporter` binary to a suitable location.
+
+    ```bash
+    sudo cp ./textfile-exporter /usr/local/bin/textfile-exporter
+    ```
+
+4.  **Install the service file**: Copy the provided service file to the systemd directory.
+
+    ```bash
+    sudo cp ./systemd-example/textfile-exporter.service /etc/systemd/system/textfile-exporter.service
+    ```
+
+5.  **Enable and start the service**:
+
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable textfile-exporter
+    sudo systemctl start textfile-exporter
+    ```
+
+    You can check the status of the service with `sudo systemctl status textfile-exporter`.
+
 ## Fork Information
 
 This repository is a fork of the original [IBM/textfile-exporter](https://github.com/IBM/textfile-exporter). It has been refactored to use a standard Go project layout, a more modern CLI interface with `kingpin`, and an automated release workflow via GitHub Actions.
