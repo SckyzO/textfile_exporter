@@ -10,7 +10,7 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     permissions:
-      write-all: true
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
