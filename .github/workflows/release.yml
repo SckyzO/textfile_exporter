@@ -1,3 +1,4 @@
+# .github/workflows/release.yml
 name: Release
 
 on:
@@ -12,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -26,6 +27,13 @@ jobs:
       - name: Build binary
         run: make VERSION=${{ env.VERSION }} build
 
+      - name: Package binary into a tar.gz archive
+        run: |
+          ARCHIVE_NAME="textfile-exporter-${{ env.VERSION }}-${{ runner.os }}-${{ runner.arch }}"
+          tar -czvf "${ARCHIVE_NAME}.tar.gz" textfile-exporter LICENSE README.md
+          echo "ARCHIVE_PATH=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
+          echo "ARCHIVE_FILENAME=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -34,10 +42,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          body: |
-            Release notes for version ${{ github.ref }}.
-          draft: false
-          prerelease: false
+          generate_release_notes: true # <-- Magie de la génération automatique !
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -46,6 +51,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./textfile-exporter
-          asset_name: textfile-exporter
-          asset_content_type: application/octet-stream
+          asset_path: ${{ env.ARCHIVE_PATH }}
+          asset_name: ${{ env.ARCHIVE_FILENAME }}
+          asset_content_type: application/gzip
