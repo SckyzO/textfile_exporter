@@ -1,4 +1,4 @@
 debug_tfe
-textfile-exporter
+textfile_exporter
 *.prom
 *.backup

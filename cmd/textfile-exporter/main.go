@@ -22,6 +22,7 @@ var (
 	buildUser string
 	buildDate string
 	goVersion string
+	projectURL string
 
 	webListenAddress = kingpin.Flag(
 		"web.listen-address",
@@ -55,8 +56,8 @@ var (
 
 func main() {
 	kingpin.Version(fmt.Sprintf(
-		"textfile-exporter, version %s (branch: %s, revision: %s)\n  build user: %s\n  build date: %s\n  go version: %s\n  platform: %s\n",
-		version, branch, revision, buildUser, buildDate, goVersion, runtime.GOOS+"/"+runtime.GOARCH,
+		"textfile-exporter, version %s (branch: %s, revision: %s)\n  build user: %s\n  build date: %s\n  go version: %s\n  platform: %s\n  project url: %s\n",
+		version, branch, revision, buildUser, buildDate, goVersion, runtime.GOOS+"/"+runtime.GOARCH, projectURL,
 	))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
