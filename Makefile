@@ -20,7 +20,7 @@ LDFLAGS = -ldflags "-X 'main.version=$(VERSION)$(GIT_DIRTY)' \
 .PHONY: build
 build:
 	@echo ">> building $(BINARY_NAME)"
-	go build $(LDFLAGS) -o $(BINARY_NAME) .
+	go build $(LDFLAGS) -o $(BINARY_NAME) ./cmd/textfile-exporter
 
 .PHONY: clean
 clean:
