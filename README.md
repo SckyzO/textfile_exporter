@@ -35,6 +35,40 @@ Run the exporter by pointing it to the directory containing your `.prom` files:
 
 You can then access the metrics at `http://localhost:9014/metrics`.
 
+### Examples
+
+**Example `.prom` file:**
+
+A `.prom` file contains standard Prometheus metrics, optionally with a timestamp at the end of the line (in milliseconds since epoch).
+
+```bash
+$ cat /path/to/your/metrics/backup-job.prom
+```
+```
+# HELP backup_duration_seconds Duration of backup process in seconds.
+# TYPE backup_duration_seconds gauge
+backup_duration_seconds{host="server1"} 138 1698680700000
+# HELP backup_copied_bytes Amount of data copied in bytes.
+# TYPE backup_copied_bytes gauge
+backup_copied_bytes{host="server1"} 37543832 1698680700000
+```
+
+**Scraping the metrics:**
+
+You can use `curl` to check the metrics exposed by the exporter:
+
+```bash
+$ curl http://localhost:9014/metrics
+```
+```
+# HELP backup_copied_bytes Amount of data copied in bytes.
+# TYPE backup_copied_bytes gauge
+backup_copied_bytes{host="server1"} 3.7543832e+07 1698680700000
+# HELP backup_duration_seconds Duration of backup process in seconds.
+# TYPE backup_duration_seconds gauge
+backup_duration_seconds{host="server1"} 138 1698680700000
+```
+
 ## Configuration
 
 The exporter is configured via command-line flags:
