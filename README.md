@@ -79,7 +79,8 @@ The exporter is configured via command-line flags:
 | `--textfile.directory`           | Path for prom file or directory of `*.prom` files.                             | `.`         |
 | `--scan-interval`                | The interval at which to scan the directory for `.prom` files.                 | `30s`       |
 | `--memory-max-age`               | Max age of in-memory metrics before they are garbage collected.                | `25h`       |
-| `--files-min-age`                | Minimum age of a file to be considered old for cleanup.                        | `6h`        |
+| `--[no-]files-min-age`         | Enable or disable the minimum age check for files.                             | `true`      |
+| `--files-min-age-duration`     | Minimum age of files to be considered old, if `--files-min-age` is enabled.  | `6h`        |
 | `--old-files-external-command`   | External command to execute on old files. The filename is passed as an argument. | `ls -l`     |
 | `--web.config.file`              | *[NOT IMPLEMENTED]* Path for web configuration (TLS, auth).                    | `""`        |
 
