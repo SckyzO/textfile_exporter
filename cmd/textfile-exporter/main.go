@@ -44,9 +44,13 @@ var (
 		"memory-max-age",
 		"Max age of in-memory metrics.",
 	).Default("25h").Duration()
-	oldFilesAge = kingpin.Flag(
+	enableFilesMinAge = kingpin.Flag(
 		"files-min-age",
-		"Min age of files to be considered old.",
+		"Enable or disable the minimum age check for files. If enabled, files older than 'files-min-age-duration' will be considered old.",
+	).Default("true").Bool()
+	filesMinAgeDuration = kingpin.Flag(
+		"files-min-age-duration",
+		"Minimum age of files to be considered old, if 'files-min-age' is enabled.",
 	).Default("6h").Duration()
 	oldFilesExternalCmd = kingpin.Flag(
 		"old-files-external-command",
@@ -71,7 +75,8 @@ func main() {
 	log.Printf("Metrics path: %s", *promPath)
 	log.Printf("Scan interval: %s", (*scanInterval).String())
 	log.Printf("Max metric age: %s", (*memoryMaxAge).String())
-	log.Printf("Min file age for cleanup: %s", (*oldFilesAge).String())
+	log.Printf("Enable file min age check: %t", *enableFilesMinAge)
+	log.Printf("Min file age duration: %s", (*filesMinAgeDuration).String())
 	log.Printf("Cleanup command: %s", *oldFilesExternalCmd)
 
 	if *webConfigFile != "" {
@@ -80,7 +85,7 @@ func main() {
 
 	coll := collector.NewTimeAwareCollector(*memoryMaxAge)
 
-	go scanner.Start(*promPath, *oldFilesAge, *oldFilesExternalCmd, *scanInterval, coll)
+	go scanner.Start(*promPath, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll)
 
 	r := prometheus.NewRegistry()
 	r.MustRegister(coll)

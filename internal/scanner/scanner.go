@@ -19,7 +19,7 @@ func isOlderThanTwoHours(t time.Time) bool {
 }
 
 // Start runs the main loop of the scanner.
-func Start(promPath string, oldFilesAge time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector) {
+func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector) {
 	for { // for ever
 		fileinfo, err := os.Stat(promPath)
 		if err != nil {
@@ -82,7 +82,7 @@ func Start(promPath string, oldFilesAge time.Duration, oldFilesExternalCmd strin
 				continue
 			}
 
-			if time.Now().After(fileinfo.ModTime().Add(oldFilesAge)) {
+			if enableFilesMinAge && time.Now().After(fileinfo.ModTime().Add(filesMinAgeDuration)) {
 				log.Printf("%d/%d Old file %s\n", i+1, n, f)
 				parts := strings.Fields(oldFilesExternalCmd)
 				if len(parts) > 0 {
