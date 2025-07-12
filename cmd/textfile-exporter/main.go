@@ -52,6 +52,10 @@ var (
 		"old-files-external-command",
 		"External command to execute on old files. The filename is passed as the last argument.",
 	).Default("ls -l").String()
+	logLevel = kingpin.Flag(
+		"log.level",
+		"Only log messages with the given severity or above. One of: [debug, info, warn, error]",
+	).Default("info").String()
 )
 
 func main() {
@@ -61,6 +65,14 @@ func main() {
 	))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
+
+	log.Printf("Starting textfile-exporter version %s", version)
+	log.Printf("Listen address: %s", *webListenAddress)
+	log.Printf("Metrics path: %s", *promPath)
+	log.Printf("Scan interval: %s", (*scanInterval).String())
+	log.Printf("Max metric age: %s", (*memoryMaxAge).String())
+	log.Printf("Min file age for cleanup: %s", (*oldFilesAge).String())
+	log.Printf("Cleanup command: %s", *oldFilesExternalCmd)
 
 	if *webConfigFile != "" {
 		log.Println("Warning: --web.config.file is not implemented and will be ignored.")

@@ -20,7 +20,6 @@ func isOlderThanTwoHours(t time.Time) bool {
 
 // Start runs the main loop of the scanner.
 func Start(promPath string, oldFilesAge time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector) {
-	log.Printf("Textfile Exporter started\n")
 	for { // for ever
 		fileinfo, err := os.Stat(promPath)
 		if err != nil {
@@ -96,9 +95,12 @@ func Start(promPath string, oldFilesAge time.Duration, oldFilesExternalCmd strin
 					if err != nil {
 						log.Printf("%d/%d Error running command %s\n", i+1, n, cmd.String())
 					}
-					fmt.Println("output:\n<<<\n" + string(cmdOut) + ">>>")
+					if debugging {
+						fmt.Println("output:\n<<<\n" + string(cmdOut) + ">>>")
+					}
 				}
 			}
+
 
 			cnt := 0
 			for name, mf := range mfs {
