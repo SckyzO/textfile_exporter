@@ -77,6 +77,12 @@ func Start(promPath string, oldFilesAge time.Duration, oldFilesExternalCmd strin
 				log.Printf("%d/%d Error stat()ing file %s\n", i+1, n, f)
 				continue
 			}
+			mfs, err := parser.ParseMF(f)
+			if err != nil {
+				log.Printf("%d/%d Error parsing file %s\n", i+1, n, f)
+				continue
+			}
+
 			if time.Now().After(fileinfo.ModTime().Add(oldFilesAge)) {
 				log.Printf("%d/%d Old file %s\n", i+1, n, f)
 				parts := strings.Fields(oldFilesExternalCmd)
@@ -92,12 +98,6 @@ func Start(promPath string, oldFilesAge time.Duration, oldFilesExternalCmd strin
 					}
 					fmt.Println("output:\n<<<\n" + string(cmdOut) + ">>>")
 				}
-				continue
-			}
-			mfs, err := parser.ParseMF(f)
-			if err != nil {
-				log.Printf("%d/%d Error parsing file %s\n", i+1, n, f)
-				continue
 			}
 
 			cnt := 0
