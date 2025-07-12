@@ -1,0 +1,48 @@
+# .goreleaser.yaml
+version: 2
+
+project_name: textfile-exporter
+
+# Release configuration
+release:
+  github:
+    owner: sckyzo
+  name_template: "{{ .ProjectName }} v{{ .Version }}"
+
+builds:
+  - id: textfile-exporter
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - 386
+      - arm64
+    binary: "{{ .ProjectName }}"
+    main: "./cmd/textfile-exporter"
+    ldflags:
+      - "-s -w"
+      - "-X main.version={{.Version}}"
+      - "-X main.revision={{.Commit}}"
+      - "-X main.branch={{.Branch}}"
+      - "-X main.buildUser={{.Env.BUILD_USER}}"
+      - "-X main.buildDate={{.Env.BUILD_DATE}}"
+      - "-X 'main.goVersion={{.Env.GO_VERSION}}'"
+      - "-X main.projectURL=https://github.com/SckyzO/textfile-exporter"
+    env:
+      - CGO_ENABLED=0
+
+archives:
+  - id: textfile-exporter-release-archive
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+
+# Define signing settings (if Cosign is set up later)
+signs:
+  - artifacts: checksum

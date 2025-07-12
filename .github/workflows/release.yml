@@ -1,59 +1,98 @@
-# .github/workflows/release.yml
 name: Release
-
 on:
   push:
+    branches:
+      - main
     tags:
-      - 'v*'
-
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+permissions:
+  contents: write
+  id-token: write
 jobs:
-  build-and-release:
+  dev:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
-
-      - name: Get version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Build binary
-        run: make VERSION=${{ env.VERSION }} build
-
-      - name: Package binary into a tar.gz archive
+          go-version: '1.19'
+      - name: Set build environment variables
         run: |
-          ARCHIVE_NAME="textfile-exporter-${{ env.VERSION }}.linux-amd64"
-          tar -czvf "${ARCHIVE_NAME}.tar.gz" textfile-exporter LICENSE README.md
-          echo "ARCHIVE_PATH=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
-          echo "ARCHIVE_FILENAME=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.1.4
+          echo "BUILD_DATE=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+          echo "GO_VERSION=$(go version)" >> $GITHUB_ENV
+      - name: Get latest tag and set GORELEASER_CURRENT_TAG
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "GORELEASER_CURRENT_TAG=${TAG}-dev" >> $GITHUB_ENV
+      - name: Debug GoReleaser Environment Variables
+        run: |
+          echo "BRANCH_NAME: ${{ github.ref_name }}"
+          echo "BUILD_DATE: ${{ env.BUILD_DATE }}"
+          echo "GO_VERSION: ${{ env.GO_VERSION }}"
+          echo "GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}"
+          echo "PATH: $PATH"
+          echo "Current directory: $(pwd)"
+          ls -l .goreleaser.dev.yaml
+      - name: Run GoReleaser Dev
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: --snapshot --clean --skip=sign --config .goreleaser.dev.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
+          BUILD_USER: "${{ github.actor }}"
+          BUILD_DATE: ${{ env.BUILD_DATE }}
+          GO_VERSION: ${{ env.GO_VERSION }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          REVISION: ${{ github.sha }}
+      - name: Rename Dev Archive
+        run: |
+          mv dist/textfile-exporter.dev.tar.gz dist/textfile-exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
+      - name: Upload Dev Archive (Linux AMD64)
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          commitish: ${{ github.sha }}
-          
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+          name: textfile-exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
+          path: dist/textfile-exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
+      - name: Upload Checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: textfile-exporter_checksums.txt
+          path: dist/textfile-exporter_checksums.txt
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+      - name: Set build environment variables
+        run: |
+          echo "BUILD_DATE=$(date +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "GO_VERSION=$(go version)" >> $GITHUB_ENV
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.ARCHIVE_PATH }}
-          asset_name: ${{ env.ARCHIVE_FILENAME }}
-          asset_content_type: application/gzip
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          BUILD_USER: "${{ github.actor }}"
+          BUILD_DATE: ${{ env.BUILD_DATE }}
+          GO_VERSION: ${{ env.GO_VERSION }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          REVISION: ${{ github.sha }}

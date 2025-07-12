@@ -1,0 +1,12 @@
+# .slsa-goreleaser.yml
+version: 1
+env:
+  - CGO_ENABLED=0
+# Specify Go options for SLSA build
+goos: linux
+goarch:
+  - amd64
+  - 386
+  - arm64
+# Name of the generated binary (use GoReleaser's `binary` field for naming)
+binary: textfile-exporter-{{ .Os }}-{{ .Arch }}
