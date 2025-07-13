@@ -1,4 +1,4 @@
-module textfile-exporter
+module textfile_exporter
 
 go 1.19
 

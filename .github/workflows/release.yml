@@ -55,17 +55,17 @@ jobs:
           REVISION: ${{ github.sha }}
       - name: Rename Dev Archive
         run: |
-          mv dist/textfile-exporter.dev.tar.gz dist/textfile-exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
+          mv dist/textfile_exporter.dev.tar.gz dist/textfile_exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
       - name: Upload Dev Archive (Linux AMD64)
         uses: actions/upload-artifact@v4
         with:
-          name: textfile-exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
-          path: dist/textfile-exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
+          name: textfile_exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
+          path: dist/textfile_exporter.${{ env.GORELEASER_CURRENT_TAG }}.branch-${{ github.ref_name }}.${{ env.BUILD_DATE }}.tar.gz
       - name: Upload Checksums
         uses: actions/upload-artifact@v4
         with:
-          name: textfile-exporter_checksums.txt
-          path: dist/textfile-exporter_checksums.txt
+          name: textfile_exporter_checksums.txt
+          path: dist/textfile_exporter_checksums.txt
   release:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')

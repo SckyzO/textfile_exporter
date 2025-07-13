@@ -23,14 +23,14 @@ To build the exporter, you need a working Go environment. Then, use the provided
 make build
 ```
 
-This will create the `textfile-exporter` binary in the root directory.
+This will create the `textfile_exporter` binary in the root directory.
 
 ### Usage
 
 Run the exporter by pointing it to the directory containing your `.prom` files:
 
 ```bash
-./textfile-exporter --textfile.directory="/path/to/your/metrics"
+./textfile_exporter --textfile.directory="/path/to/your/metrics"
 ```
 
 You can then access the metrics at `http://localhost:9014/metrics`.
@@ -89,7 +89,7 @@ The exporter is configured via command-line flags:
 To check the version of the binary, use the `--version` flag:
 
 ```bash
-./textfile-exporter --version
+./textfile_exporter --version
 ```
 
 ## Deployment as a systemd Service
@@ -99,37 +99,37 @@ To run the exporter as a systemd service on a Linux system, follow these steps:
 1.  **Create a dedicated user and group**: It is recommended to run the exporter with a non-privileged user.
 
     ```bash
-    sudo useradd --no-create-home --shell /bin/false textfile-exporter
+    sudo useradd --no-create-home --shell /bin/false textfile_exporter
     ```
 
 2.  **Create the metrics directory**: This is where your applications will drop their `.prom` files.
 
     ```bash
-    sudo mkdir /var/lib/textfile-exporter
-    sudo chown textfile-exporter:textfile-exporter /var/lib/textfile-exporter
+    sudo mkdir /var/lib/textfile_exporter
+    sudo chown textfile_exporter:textfile_exporter /var/lib/textfile_exporter
     ```
 
-3.  **Install the binary**: Copy the compiled `textfile-exporter` binary to a suitable location.
+3.  **Install the binary**: Copy the compiled `textfile_exporter` binary to a suitable location.
 
     ```bash
-    sudo cp ./textfile-exporter /usr/local/bin/textfile-exporter
+    sudo cp ./textfile_exporter /usr/local/bin/textfile_exporter
     ```
 
 4.  **Install the service file**: Copy the provided service file to the systemd directory.
 
     ```bash
-    sudo cp ./systemd-example/textfile-exporter.service /etc/systemd/system/textfile-exporter.service
+    sudo cp ./systemd-example/textfile_exporter.service /etc/systemd/system/textfile_exporter.service
     ```
 
 5.  **Enable and start the service**:
 
     ```bash
     sudo systemctl daemon-reload
-    sudo systemctl enable textfile-exporter
-    sudo systemctl start textfile-exporter
+    sudo systemctl enable textfile_exporter
+    sudo systemctl start textfile_exporter
     ```
 
-    You can check the status of the service with `sudo systemctl status textfile-exporter`.
+    You can check the status of the service with `sudo systemctl status textfile_exporter`.
 
 ## Fork Information
 

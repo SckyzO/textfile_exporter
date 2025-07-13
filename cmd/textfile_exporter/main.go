@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"runtime"
-	"textfile-exporter/internal/collector"
-	"textfile-exporter/internal/scanner"
+	"textfile_exporter/internal/collector"
+	"textfile_exporter/internal/scanner"
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -64,13 +64,13 @@ var (
 
 func main() {
 	kingpin.Version(fmt.Sprintf(
-		"textfile-exporter, version %s (branch: %s, revision: %s)\n  build user: %s\n  build date: %s\n  go version: %s\n  platform: %s\n  project url: %s\n",
+		"textfile_exporter, version %s (branch: %s, revision: %s)\n  build user: %s\n  build date: %s\n  go version: %s\n  platform: %s\n  project url: %s\n",
 		version, branch, revision, buildUser, buildDate, goVersion, runtime.GOOS+"/"+runtime.GOARCH, projectURL,
 	))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
-	log.Printf("Starting textfile-exporter version %s", version)
+	log.Printf("Starting textfile_exporter version %s", version)
 	log.Printf("Listen address: %s", *webListenAddress)
 	log.Printf("Metrics path: %s", *promPath)
 	log.Printf("Scan interval: %s", (*scanInterval).String())

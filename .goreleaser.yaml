@@ -1,7 +1,7 @@
 # .goreleaser.yaml
 version: 2
 
-project_name: textfile-exporter
+project_name: textfile_exporter
 
 # Release configuration
 release:
@@ -10,7 +10,7 @@ release:
   name_template: "{{ .ProjectName }} v{{ .Version }}"
 
 builds:
-  - id: textfile-exporter
+  - id: textfile_exporter
     goos:
       - linux
       - windows
@@ -20,7 +20,7 @@ builds:
       - 386
       - arm64
     binary: "{{ .ProjectName }}"
-    main: "./cmd/textfile-exporter"
+    main: "./cmd/textfile_exporter"
     ldflags:
       - "-s -w"
       - "-X main.version={{.Version}}"
@@ -29,12 +29,12 @@ builds:
       - "-X main.buildUser={{.Env.BUILD_USER}}"
       - "-X main.buildDate={{.Env.BUILD_DATE}}"
       - "-X 'main.goVersion={{.Env.GO_VERSION}}'"
-      - "-X main.projectURL=https://github.com/SckyzO/textfile-exporter"
+      - "-X main.projectURL=https://github.com/SckyzO/textfile_exporter"
     env:
       - CGO_ENABLED=0
 
 archives:
-  - id: textfile-exporter-release-archive
+  - id: textfile_exporter-release-archive
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
       - README.md
