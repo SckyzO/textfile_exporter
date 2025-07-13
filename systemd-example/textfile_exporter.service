@@ -1,14 +1,14 @@
 [Unit]
 Description=Prometheus Textfile Exporter
-Documentation=https://github.com/SckyzO/textfile-exporter
+Documentation=https://github.com/SckyzO/textfile_exporter
 After=network.target
 
 [Service]
 Type=simple
-User=textfile-exporter
-Group=textfile-exporter
-ExecStart=/usr/local/bin/textfile-exporter \
-  --textfile.directory="/var/lib/textfile-exporter" \
+User=textfile_exporter
+Group=textfile_exporter
+ExecStart=/usr/local/bin/textfile_exporter \
+  --textfile.directory="/var/lib/textfile_exporter" \
   --web.listen-address=":9014"
 
 # Security Hardening

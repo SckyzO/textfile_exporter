@@ -1,5 +1,5 @@
 BINARY_NAME=textfile_exporter
-VERSION=0.1.0
+VERSION=0.1.2
 
 # Gather build info
 GOVERSION   := $(shell go version)
@@ -8,7 +8,7 @@ GIT_DIRTY   := $(shell test -n "`git status --porcelain`" && echo "-dirty")
 GIT_BRANCH  := $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_USER  := $(shell git config user.name) <$(shell git config user.email)> 
 BUILD_DATE  := $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
-PROJECT_URL := https://github.com/SckyzO/textfile-exporter
+PROJECT_URL := https://github.com/SckyzO/textfile_exporter
 
 # Setup ldflags
 LDFLAGS = -ldflags "-X 'main.version=$(VERSION)$(GIT_DIRTY)' \
@@ -22,7 +22,7 @@ LDFLAGS = -ldflags "-X 'main.version=$(VERSION)$(GIT_DIRTY)' \
 .PHONY: build
 build:
 	@echo ">> building $(BINARY_NAME)"
-	go build $(LDFLAGS) -o $(BINARY_NAME) ./cmd/textfile-exporter
+	go build $(LDFLAGS) -o $(BINARY_NAME) ./cmd/textfile_exporter
 
 .PHONY: clean
 clean:

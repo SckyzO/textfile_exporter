@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"textfile-exporter/internal/collector"
-	"textfile-exporter/internal/parser"
+	"textfile_exporter/internal/collector"
+	"textfile_exporter/internal/parser"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
