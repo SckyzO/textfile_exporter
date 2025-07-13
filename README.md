@@ -1,21 +1,21 @@
-# Textfile Exporter
+# 🚀 Textfile Exporter
 
 A robust and flexible Prometheus exporter for metrics from textual files.
 
 This exporter monitors a directory for `*.prom` files, parses the Prometheus metrics within them (including timestamps), and exposes them on an HTTP endpoint for scraping. It is ideal for capturing metrics from cron jobs, batch scripts, or any process that cannot expose its own metrics endpoint.
 
-## Features
+## ✨ Features
 
-- **Directory Monitoring**: Continuously scans a specified directory for `*.prom` files.
-- **Timestamp Support**: Natively supports timestamps in metric lines, ensuring accurate data timing.
-- **Flexible Configuration**: All settings are configurable via command-line flags.
-- **Automatic Cleanup**: Can be configured to run a custom command on old metric files.
-- **Dynamic Versioning**: Binaries are built with embedded version information (Git commit, branch, build date).
-- **Liveness Probe**: Includes a `/alive` endpoint for health checks.
+- 📁 **Directory Monitoring**: Continuously scans a specified directory for `*.prom` files.
+- ⏰ **Timestamp Support**: Natively supports timestamps in metric lines, ensuring accurate data timing.
+- ⚙️ **Flexible Configuration**: All settings are configurable via command-line flags.
+- 🧹 **Automatic Cleanup**: Can be configured to run a custom command on old metric files.
+- 🏷️ **Dynamic Versioning**: Binaries are built with embedded version information (Git commit, branch, build date).
+- ❤️‍🩹 **Liveness Probe**: Includes a `/alive` endpoint for health checks.
 
-## Getting Started
+## 🚀 Getting Started
 
-### Building from source
+### 🏗️ Building from source
 
 To build the exporter, you need a working Go environment. Then, use the provided `Makefile`:
 
@@ -25,7 +25,7 @@ make build
 
 This will create the `textfile_exporter` binary in the root directory.
 
-### Usage
+### 💡 Usage
 
 Run the exporter by pointing it to the directory containing your `.prom` files:
 
@@ -35,7 +35,7 @@ Run the exporter by pointing it to the directory containing your `.prom` files:
 
 You can then access the metrics at `http://localhost:9014/metrics`.
 
-### Examples
+### 📝 Examples
 
 **Example `.prom` file:**
 
@@ -69,7 +69,7 @@ backup_copied_bytes{host="server1"} 3.7543832e+07 1698680700000
 backup_duration_seconds{host="server1"} 138 1698680700000
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 The exporter is configured via command-line flags:
 
@@ -84,7 +84,7 @@ The exporter is configured via command-line flags:
 | `--old-files-external-command`   | External command to execute on old files. The filename is passed as an argument. | `ls -l`     |
 | `--web.config.file`              | *[NOT IMPLEMENTED]* Path for web configuration (TLS, auth).                    | `""`        |
 
-### Version Information
+### 🏷️ Version Information
 
 To check the version of the binary, use the `--version` flag:
 
@@ -92,7 +92,7 @@ To check the version of the binary, use the `--version` flag:
 ./textfile_exporter --version
 ```
 
-## Deployment as a systemd Service
+## ⚙️ Deployment as a systemd Service
 
 To run the exporter as a systemd service on a Linux system, follow these steps:
 
@@ -131,10 +131,10 @@ To run the exporter as a systemd service on a Linux system, follow these steps:
 
     You can check the status of the service with `sudo systemctl status textfile_exporter`.
 
-## Fork Information
+## 🔗 Fork Information
 
 This repository is a fork of the original [IBM/textfile-exporter](https://github.com/IBM/textfile-exporter). It has been refactored to use a standard Go project layout, a more modern CLI interface with `kingpin`, and an automated release workflow via GitHub Actions.
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
