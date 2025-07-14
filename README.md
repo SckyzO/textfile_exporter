@@ -11,7 +11,6 @@ This exporter monitors a directory for `*.prom` files, parses the Prometheus met
 - ⚙️ **Flexible Configuration**: All settings are configurable via command-line flags.
 - 🧹 **Automatic Cleanup**: Can be configured to run a custom command on old metric files.
 - 🏷️ **Dynamic Versioning**: Binaries are built with embedded version information (Git commit, branch, build date).
-- ❤️‍🩹 **Liveness Probe**: Includes a `/alive` endpoint for health checks.
 
 ## 🚀 Getting Started
 

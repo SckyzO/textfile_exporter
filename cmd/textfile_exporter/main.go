@@ -62,6 +62,14 @@ var (
 	).Default("info").String()
 )
 
+const indexHTML = `<html>
+<head><title>Textfile Exporter</title></head>
+<body>
+<h1>Textfile Exporter</h1>
+<p>Click <a href='/metrics'>here</a> to see the metrics.</p>
+</body>
+</html>`
+
 func main() {
 	kingpin.Version(fmt.Sprintf(
 		"textfile_exporter, version %s (branch: %s, revision: %s)\n  build user: %s\n  build date: %s\n  go version: %s\n  platform: %s\n  project url: %s\n",
@@ -91,8 +99,8 @@ func main() {
 	r.MustRegister(coll)
 	handler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
 	http.Handle("/metrics", handler)
-	http.HandleFunc("/alive", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "i'm alive\n")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(indexHTML))
 	})
 
 	s := &http.Server{
