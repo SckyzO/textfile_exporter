@@ -4,6 +4,18 @@ A robust and flexible Prometheus exporter for metrics from textual files.
 
 This exporter monitors a directory for `*.prom` files, parses the Prometheus metrics within them (including timestamps), and exposes them on an HTTP endpoint for scraping. It is ideal for capturing metrics from cron jobs, batch scripts, or any process that cannot expose its own metrics endpoint.
 
+## 🤔 Why use this exporter over the node_exporter's textfile collector?
+
+While the standard Prometheus `node_exporter` includes a [textfile collector](https://github.com/prometheus/node_exporter#textfile-collector-module), this project was created to address some of its limitations for more advanced use cases:
+
+- **Timestamp Support**: The `node_exporter` does not support timestamps in metric files. All metrics are assigned the timestamp of the scrape, which is unsuitable for jobs that run offline (e.g., nightly backups). This exporter reads and applies the original timestamps from the `.prom` files, ensuring data accuracy.
+
+- **In-Memory Cache & Expiration**: This exporter maintains an in-memory cache of metrics with a configurable expiration time. Metrics can persist for a while even after their source file is deleted, which is ideal for ephemeral or short-lived jobs. The `node_exporter`'s collector re-reads files on every scrape, so metrics disappear instantly with their files.
+
+- **Flexible File Cleanup**: The `node_exporter` has very basic file management. This exporter allows you to run any external command on old files, giving you the flexibility to archive, compress, or log them as needed.
+
+- **Standalone and Focused**: This is a lightweight, dedicated binary. If you only need to export metrics from text files, you can deploy this tool without the overhead of the full `node_exporter`.
+
 ## ✨ Features
 
 - 📁 **Directory Monitoring**: Continuously scans a specified directory for `*.prom` files.
