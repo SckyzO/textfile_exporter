@@ -62,6 +62,19 @@ var (
 	).Default("info").String()
 )
 
+// Internal metrics exposed by the exporter itself.
+var (
+	scannedFilesCount = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "textfile_exporter_scanned_files_count",
+		Help: "Number of .prom files found in the last scan.",
+	})
+	lastScanTimestamp = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "textfile_exporter_last_scan_timestamp",
+		Help: "Unix timestamp of the last scan.",
+	})
+)
+
+// indexHTML is the HTML content for the root page.
 const indexHTML = `<html>
 <head><title>Textfile Exporter</title></head>
 <body>
@@ -70,6 +83,7 @@ const indexHTML = `<html>
 </body>
 </html>`
 
+// main is the entrypoint of the application.
 func main() {
 	kingpin.Version(fmt.Sprintf(
 		"textfile_exporter, version %s (branch: %s, revision: %s)\n  build user: %s\n  build date: %s\n  go version: %s\n  platform: %s\n  project url: %s\n",
@@ -93,10 +107,15 @@ func main() {
 
 	coll := collector.NewTimeAwareCollector(*memoryMaxAge)
 
-	go scanner.Start(*promPath, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll)
+	go scanner.Start(*promPath, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll, scannedFilesCount, lastScanTimestamp)
 
 	r := prometheus.NewRegistry()
 	r.MustRegister(coll)
+	r.MustRegister(scannedFilesCount)
+	r.MustRegister(lastScanTimestamp)
+	r.MustRegister(prometheus.NewGoCollector())
+	r.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+
 	handler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
 	http.Handle("/metrics", handler)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

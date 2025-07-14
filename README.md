@@ -34,6 +34,14 @@ Run the exporter by pointing it to the directory containing your `.prom` files:
 
 You can then access the metrics at `http://localhost:9014/metrics`.
 
+### 📈 Internal Metrics
+
+The exporter also exposes its own internal metrics:
+
+- `textfile_exporter_scanned_files_count`: The number of `.prom` files found during the last scan.
+- `textfile_exporter_last_scan_timestamp`: Unix timestamp of the last successful scan.
+- Standard Go process metrics (`process_*`) and Go runtime metrics (`go_*`).
+
 ### 📝 Examples
 
 **Example `.prom` file:**

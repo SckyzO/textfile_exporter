@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -18,9 +17,21 @@ func isOlderThanTwoHours(t time.Time) bool {
 	return time.Now().Sub(t) > 2*time.Hour
 }
 
-// Start runs the main loop of the scanner.
-func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector) {
-	for { // for ever
+// Start begins the scanning loop that periodically reads .prom files from a
+// directory, parses the metrics, and updates the collector. This function is
+// intended to be run as a goroutine.
+//
+// - promPath: The directory or file to scan for metrics.
+// - enableFilesMinAge: Flag to enable checking for old files.
+// - filesMinAgeDuration: Duration to consider a file old.
+// - oldFilesExternalCmd: Command to run on old files.
+// - scanInterval: How often to scan the directory.
+// - coll: The TimeAwareCollector to which metrics will be added.
+// - scannedFilesCount: A gauge to update with the number of files found.
+// - lastScanTimestamp: A gauge to update with the timestamp of the last scan.
+func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector, scannedFilesCount prometheus.Gauge, lastScanTimestamp prometheus.Gauge) {
+	for {
+		lastScanTimestamp.SetToCurrentTime()
 		fileinfo, err := os.Stat(promPath)
 		if err != nil {
 			log.Printf("Error stating path %s: %v\n", promPath, err)
@@ -28,7 +39,7 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 		}
 		var debugging bool
 
-		// We have a simple runtime-switchable debug option.
+		// Enable debug logging if a 'debug_tfe' file exists and is recent.
 		if fs, err := os.Stat(promPath + "/debug_tfe"); err == nil {
 			if !isOlderThanTwoHours(fs.ModTime()) {
 				debugging = true
@@ -63,6 +74,7 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 		}
 		n := len(files)
 		log.Printf("Found %d files\n", n)
+		scannedFilesCount.Set(float64(n))
 
 		newMetrics := make(map[string]collector.StoredMetric)
 
@@ -82,6 +94,7 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 				continue
 			}
 
+			// If enabled, execute an external command on files older than the specified duration.
 			if enableFilesMinAge && time.Now().After(fileinfo.ModTime().Add(filesMinAgeDuration)) {
 				log.Printf("%d/%d Old file %s\n", i+1, n, f)
 				parts := strings.Fields(oldFilesExternalCmd)
@@ -96,11 +109,10 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 						log.Printf("%d/%d Error running command %s\n", i+1, n, cmd.String())
 					}
 					if debugging {
-						fmt.Println("output:\n<<<\n" + string(cmdOut) + ">>>")
+						log.Printf("output:\n<<<\n%s\n>>>\n", string(cmdOut))
 					}
 				}
 			}
-
 
 			cnt := 0
 			for name, mf := range mfs {
@@ -138,6 +150,7 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 						log.Println("  Metric Value: ", metric_value)
 						log.Println("  Timestamp: ", timestamp)
 					}
+					// If the metric has no timestamp, assign the current time.
 					if timestamp <= 0 {
 						timestamp = time.Now().UTC().UnixNano() / 1000000
 						if debugging {
