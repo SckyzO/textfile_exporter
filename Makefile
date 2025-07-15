@@ -1,5 +1,5 @@
 BINARY_NAME=textfile_exporter
-VERSION=0.1.3
+VERSION=0.1.4
 
 # Gather build info
 GOVERSION   := $(shell go version)
