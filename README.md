@@ -101,7 +101,42 @@ The exporter is configured via command-line flags:
 | `--[no-]files-min-age`         | Enable or disable the minimum age check for files.                             | `true`      |
 | `--files-min-age-duration`     | Minimum age of files to be considered old, if `--files-min-age` is enabled.  | `6h`        |
 | `--old-files-external-command`   | External command to execute on old files. The filename is passed as an argument. | `ls -l`     |
-| `--web.config.file`              | *[NOT IMPLEMENTED]* Path for web configuration (TLS, auth).                    | `""`        |
+| `--web.config.file`              | Path for web configuration file (e.g., for TLS).                    | `""`        |
+
+### 🔐 Web Configuration
+
+The exporter's web server can be configured to use TLS, client certificate authentication, and basic authentication. All of these options are configured in a YAML file passed to the `--web.config.file` flag.
+
+**Example `web-config.yml`:**
+
+```yaml
+tls_server_config:
+  cert_file: /path/to/your/server-cert.pem
+  key_file: /path/to/your/server-key.pem
+  client_ca_file: /path/to/your/client-ca.pem
+
+basic_auth:
+  username: "myuser"
+  password_file: "/path/to/password.txt"
+```
+
+#### TLS and Client Authentication
+
+- `cert_file` and `key_file` are the server's TLS certificate and private key.
+- `client_ca_file` is the certificate authority (CA) file used to validate client certificates. If provided, the exporter will require a valid client certificate for all connections.
+
+#### Basic Authentication
+
+- `username` is the username for basic authentication.
+- `password_file` is the path to a file containing the password for basic authentication.
+
+You would then run the exporter like this:
+
+```bash
+./textfile_exporter --web.config.file="web-config.yml"
+```
+
+The exporter will then serve metrics over HTTPS on the address specified by `--web.listen-address`, protected by any configured authentication methods.
 
 ### 🏷️ Version Information
 

@@ -1,12 +1,18 @@
 package main
 
 import (
+	"crypto/subtle"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"runtime"
+	"strings"
 	"textfile_exporter/internal/collector"
 	"textfile_exporter/internal/scanner"
+	"textfile_exporter/internal/webconfig"
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -30,7 +36,7 @@ var (
 	).Default(":9014").String()
 	webConfigFile = kingpin.Flag(
 		"web.config.file",
-		"[NOT IMPLEMENTED] Path to configuration file that can enable TLS or authentication.",
+		"Path to configuration file that can enable TLS or authentication.",
 	).String()
 	promPath = kingpin.Flag(
 		"textfile.directory",
@@ -83,6 +89,19 @@ const indexHTML = `<html>
 </body>
 </html>`
 
+// basicAuthMiddleware wraps a handler to enforce basic authentication.
+func basicAuthMiddleware(handler http.Handler, username, password string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(username)) != 1 || subtle.ConstantTimeCompare([]byte(pass), []byte(password)) != 1 {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
+}
+
 // main is the entrypoint of the application.
 func main() {
 	kingpin.Version(fmt.Sprintf(
@@ -101,8 +120,13 @@ func main() {
 	log.Printf("Min file age duration: %s", (*filesMinAgeDuration).String())
 	log.Printf("Cleanup command: %s", *oldFilesExternalCmd)
 
+	var webConfig *webconfig.WebConfig
 	if *webConfigFile != "" {
-		log.Println("Warning: --web.config.file is not implemented and will be ignored.")
+		var err error
+		webConfig, err = webconfig.LoadConfig(*webConfigFile)
+		if err != nil {
+			log.Fatalf("Failed to load web config: %v", err)
+		}
 	}
 
 	coll := collector.NewTimeAwareCollector(*memoryMaxAge)
@@ -116,11 +140,25 @@ func main() {
 	r.MustRegister(prometheus.NewGoCollector())
 	r.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
 
-	handler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
-	http.Handle("/metrics", handler)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	metricsHandler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
+	indexHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(indexHTML))
 	})
+
+	if webConfig != nil && webConfig.BasicAuth != nil && webConfig.BasicAuth.Username != "" && webConfig.BasicAuth.PasswordFile != "" {
+		password, err := ioutil.ReadFile(webConfig.BasicAuth.PasswordFile)
+		if err != nil {
+			log.Fatalf("Failed to read password file: %v", err)
+		}
+		passwordStr := strings.TrimSpace(string(password))
+		metricsHandler = basicAuthMiddleware(metricsHandler, webConfig.BasicAuth.Username, passwordStr)
+		http.Handle("/metrics", metricsHandler)
+		http.Handle("/", basicAuthMiddleware(indexHandler, webConfig.BasicAuth.Username, passwordStr))
+		log.Println("Basic authentication is enabled.")
+	} else {
+		http.Handle("/metrics", metricsHandler)
+		http.Handle("/", indexHandler)
+	}
 
 	s := &http.Server{
 		Addr:           *webListenAddress,
@@ -129,5 +167,27 @@ func main() {
 		WriteTimeout:   30 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	log.Fatal(s.ListenAndServe())
+
+	if webConfig != nil && webConfig.TLS != nil && webConfig.TLS.CertFile != "" && webConfig.TLS.KeyFile != "" {
+		tlsConfig := &tls.Config{}
+
+		if webConfig.TLS.ClientCAFile != "" {
+			caCert, err := ioutil.ReadFile(webConfig.TLS.ClientCAFile)
+			if err != nil {
+				log.Fatalf("Failed to read client CA file: %v", err)
+			}
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+			tlsConfig.ClientCAs = caCertPool
+			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+			log.Println("Client certificate authentication is enabled.")
+		}
+
+		s.TLSConfig = tlsConfig
+		log.Printf("Listening with TLS...")
+		log.Fatal(s.ListenAndServeTLS(webConfig.TLS.CertFile, webConfig.TLS.KeyFile))
+	} else {
+		log.Printf("Listening without TLS...")
+		log.Fatal(s.ListenAndServe())
+	}
 }
