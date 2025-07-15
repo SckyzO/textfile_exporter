@@ -32,14 +32,15 @@ func isOlderThanTwoHours(t time.Time) bool {
 // - coll: The TimeAwareCollector to which metrics will be added.
 // - scannedFilesCount: A gauge to update with the number of files found.
 // - lastScanTimestamp: A gauge to update with the timestamp of the last scan.
-func Start(promPath string, recursive bool, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector, scannedFilesCount prometheus.Gauge, lastScanTimestamp prometheus.Gauge) {
+func Start(promPath string, recursive bool, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector, scannedFilesCount prometheus.Gauge, lastScanTimestamp prometheus.Gauge, fileScanErrorsTotal *prometheus.CounterVec, fileParseErrorsTotal *prometheus.CounterVec) {
 	for {
 		lastScanTimestamp.SetToCurrentTime()
 		fileinfo, err := os.Stat(promPath)
-		if err != nil {
-			log.Printf("Error stating path %s: %v\n", promPath, err)
-			continue
-		}
+        if err != nil {
+            log.Printf("Error stating path %s: %v\n", promPath, err)
+            fileScanErrorsTotal.WithLabelValues("stat_path_error").Inc()
+            continue
+        }
 		var debugging bool
 
 		// Enable debug logging if a 'debug_tfe' file exists and is recent.
@@ -66,14 +67,16 @@ func Start(promPath string, recursive bool, enableFilesMinAge bool, filesMinAgeD
 				})
 				if err != nil {
 					log.Printf("Error walking directory %s: %v\n", promPath, err)
+					fileScanErrorsTotal.WithLabelValues("walkdir_error").Inc()
 					continue
 				}
 			} else {
 				entries, err := os.ReadDir(promPath)
-				if err != nil {
-					log.Printf("Error reading directory %s: %v\n", promPath, err)
-					continue
-				}
+                if err != nil {
+                    log.Printf("Error reading directory %s: %v\n", promPath, err)
+                    fileScanErrorsTotal.WithLabelValues("readdir_error").Inc()
+                    continue
+                }
 				for _, entry := range entries {
 					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".prom") {
 						files = append(files, filepath.Join(promPath, entry.Name()))
@@ -97,11 +100,13 @@ func Start(promPath string, recursive bool, enableFilesMinAge bool, filesMinAgeD
 			fileinfo, err := os.Stat(f)
 			if err != nil {
 				log.Printf("%d/%d Error stat()ing file %s\n", i+1, n, f)
+				fileScanErrorsTotal.WithLabelValues("stat_file_error").Inc()
 				continue
 			}
 			mfs, err := parser.ParseMF(f)
 			if err != nil {
 				log.Printf("%d/%d Error parsing file %s\n", i+1, n, f)
+				fileParseErrorsTotal.WithLabelValues("parse_error").Inc()
 				continue
 			}
 

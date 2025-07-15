@@ -82,6 +82,14 @@ var (
 		Name: "textfile_exporter_last_scan_timestamp",
 		Help: "Unix timestamp of the last scan.",
 	})
+	fileScanErrorsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "textfile_exporter_file_scan_errors_total",
+		Help: "Total number of errors encountered during file scanning.",
+	}, []string{"reason"})
+	fileParseErrorsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "textfile_exporter_file_parse_errors_total",
+		Help: "Total number of errors encountered during .prom file parsing.",
+	}, []string{"reason"})
 )
 
 // indexHTML is the HTML content for the root page.
@@ -136,12 +144,14 @@ func main() {
 
 	coll := collector.NewTimeAwareCollector(*memoryMaxAge)
 
-	go scanner.Start(*promPath, *scannerRecursive, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll, scannedFilesCount, lastScanTimestamp)
+	go scanner.Start(*promPath, *scannerRecursive, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll, scannedFilesCount, lastScanTimestamp, fileScanErrorsTotal, fileParseErrorsTotal)
 
 	r := prometheus.NewRegistry()
 	r.MustRegister(coll)
 	r.MustRegister(scannedFilesCount)
 	r.MustRegister(lastScanTimestamp)
+	r.MustRegister(fileScanErrorsTotal)
+	r.MustRegister(fileParseErrorsTotal)
 	r.MustRegister(prometheus.NewGoCollector())
 	r.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
 
