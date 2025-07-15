@@ -102,6 +102,7 @@ The exporter is configured via command-line flags:
 | `--files-min-age-duration`     | Minimum age of files to be considered old, if `--files-min-age` is enabled.  | `6h`        |
 | `--old-files-external-command`   | External command to execute on old files. The filename is passed as an argument. | `ls -l`     |
 | `--web.config.file`              | Path for web configuration file (e.g., for TLS).                    | `""`        |
+| `--scanner.recursive`            | Recursively scan for `.prom` files in the given directory.             | `false`     |
 
 ### 🔐 Web Configuration
 

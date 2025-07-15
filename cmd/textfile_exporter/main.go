@@ -42,6 +42,10 @@ var (
 		"textfile.directory",
 		"Path for prom file or dir of *.prom files.",
 	).Default(".").String()
+	scannerRecursive = kingpin.Flag(
+		"scanner.recursive",
+		"Recursively scan for .prom files in the given directory.",
+	).Bool()
 	scanInterval = kingpin.Flag(
 		"scan-interval",
 		"The interval at which to scan the directory for .prom files.",
@@ -114,6 +118,7 @@ func main() {
 	log.Printf("Starting textfile_exporter version %s", version)
 	log.Printf("Listen address: %s", *webListenAddress)
 	log.Printf("Metrics path: %s", *promPath)
+	log.Printf("Recursive scan: %t", *scannerRecursive)
 	log.Printf("Scan interval: %s", (*scanInterval).String())
 	log.Printf("Max metric age: %s", (*memoryMaxAge).String())
 	log.Printf("Enable file min age check: %t", *enableFilesMinAge)
@@ -131,7 +136,7 @@ func main() {
 
 	coll := collector.NewTimeAwareCollector(*memoryMaxAge)
 
-	go scanner.Start(*promPath, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll, scannedFilesCount, lastScanTimestamp)
+	go scanner.Start(*promPath, *scannerRecursive, *enableFilesMinAge, *filesMinAgeDuration, *oldFilesExternalCmd, *scanInterval, coll, scannedFilesCount, lastScanTimestamp)
 
 	r := prometheus.NewRegistry()
 	r.MustRegister(coll)

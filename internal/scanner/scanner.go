@@ -1,9 +1,11 @@
 package scanner
 
 import (
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"textfile_exporter/internal/collector"
 	"textfile_exporter/internal/parser"
@@ -22,6 +24,7 @@ func isOlderThanTwoHours(t time.Time) bool {
 // intended to be run as a goroutine.
 //
 // - promPath: The directory or file to scan for metrics.
+// - recursive: Whether to scan the directory recursively.
 // - enableFilesMinAge: Flag to enable checking for old files.
 // - filesMinAgeDuration: Duration to consider a file old.
 // - oldFilesExternalCmd: Command to run on old files.
@@ -29,7 +32,7 @@ func isOlderThanTwoHours(t time.Time) bool {
 // - coll: The TimeAwareCollector to which metrics will be added.
 // - scannedFilesCount: A gauge to update with the number of files found.
 // - lastScanTimestamp: A gauge to update with the timestamp of the last scan.
-func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector, scannedFilesCount prometheus.Gauge, lastScanTimestamp prometheus.Gauge) {
+func Start(promPath string, recursive bool, enableFilesMinAge bool, filesMinAgeDuration time.Duration, oldFilesExternalCmd string, scanInterval time.Duration, coll *collector.TimeAwareCollector, scannedFilesCount prometheus.Gauge, lastScanTimestamp prometheus.Gauge) {
 	for {
 		lastScanTimestamp.SetToCurrentTime()
 		fileinfo, err := os.Stat(promPath)
@@ -51,22 +54,30 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 
 		var files []string
 		if fileinfo.IsDir() {
-			entries, err := os.ReadDir(promPath)
-			if err != nil {
-				log.Printf("Error reading directory %s: %v\n", promPath, err)
-				continue
-			}
-			for _, entry := range entries {
-				fi, err := entry.Info()
+			if recursive {
+				err := filepath.WalkDir(promPath, func(path string, d fs.DirEntry, err error) error {
+					if err != nil {
+						return err
+					}
+					if !d.IsDir() && strings.HasSuffix(d.Name(), ".prom") {
+						files = append(files, path)
+					}
+					return nil
+				})
 				if err != nil {
+					log.Printf("Error walking directory %s: %v\n", promPath, err)
 					continue
 				}
-				if fi.IsDir() {
+			} else {
+				entries, err := os.ReadDir(promPath)
+				if err != nil {
+					log.Printf("Error reading directory %s: %v\n", promPath, err)
 					continue
 				}
-				name := fi.Name()
-				if fi.Mode().IsRegular() && strings.HasSuffix(name, ".prom") {
-					files = append(files, promPath+"/"+fi.Name())
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".prom") {
+						files = append(files, filepath.Join(promPath, entry.Name()))
+					}
 				}
 			}
 		} else {
@@ -183,3 +194,4 @@ func Start(promPath string, enableFilesMinAge bool, filesMinAgeDuration time.Dur
 		time.Sleep(scanInterval)
 	}
 }
+
