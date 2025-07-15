@@ -1,5 +1,8 @@
 # 🚀 Textfile Exporter
 
+[![GitHub Release](https://img.shields.io/github/v/release/SckyzO/textfile_exporter?style=flat-square)](https://github.com/SckyzO/textfile_exporter/releases)
+[![Build Status](https://github.com/SckyzO/textfile_exporter/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/SckyzO/textfile_exporter/actions/workflows/release.yml)
+
 A robust and flexible Prometheus exporter for metrics from textual files.
 
 This exporter monitors a directory for `*.prom` files, parses the Prometheus metrics within them (including timestamps), and exposes them on an HTTP endpoint for scraping. It is ideal for capturing metrics from cron jobs, batch scripts, or any process that cannot expose its own metrics endpoint.
