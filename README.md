@@ -22,9 +22,11 @@ While the standard Prometheus `node_exporter` includes a [textfile collector](ht
 ## ✨ Features
 
 - 📁 **Directory Monitoring**: Continuously scans a specified directory for `*.prom` files.
+- 🔄 **Recursive Scanning**: Supports recursive scanning of subdirectories for `.prom` files.
 - ⏰ **Timestamp Support**: Natively supports timestamps in metric lines, ensuring accurate data timing.
 - ⚙️ **Flexible Configuration**: All settings are configurable via command-line flags.
 - 🧹 **Automatic Cleanup**: Can be configured to run a custom command on old metric files.
+- 📊 **Detailed Error Metrics**: Exposes Prometheus metrics for file scanning and parsing errors.
 - 🏷️ **Dynamic Versioning**: Binaries are built with embedded version information (Git commit, branch, build date).
 
 ## 🚀 Getting Started
@@ -192,6 +194,18 @@ To run the exporter as a systemd service on a Linux system, follow these steps:
 ## 🔗 Fork Information
 
 This repository is a fork of the original [IBM/textfile-exporter](https://github.com/IBM/textfile-exporter). It has been refactored to use a standard Go project layout, a more modern CLI interface with `kingpin`, and an automated release workflow via GitHub Actions.
+
+### Major Improvements Over the Original
+
+This version is more than just a fork; it's a complete overhaul with significant enhancements:
+
+ *  Enhanced Security: Hardened the external command execution to prevent potential command injection vulnerabilities (gosec G204) that were present in the original version.
+ * ️ Modern Project Structure: Adopted a standard Go project layout (cmd/, internal/) for better organization, easier maintenance, and clearer contribution paths.
+ * ️ Improved CLI: Integrated the kingpin library for a more powerful and user-friendly command-line experience with detailed help text and better flag support.
+ *  Full Build Automation: Implemented a Makefile and a complete GoReleaser workflow for automated, multi-platform builds and releases with embedded version information.
+ *  Better Code Modularity: Refactored the entire codebase to separate concerns into distinct packages (collector, scanner, logger), resulting in a cleaner, more robust, and more maintainable application.
+ *  Recursive Scanning: Added the ability to recursively scan subdirectories for .prom files, enhancing flexibility for metric file organization.
+ *  Comprehensive Error Reporting: Introduced detailed Prometheus metrics for file scanning and parsing errors, providing better observability and troubleshooting capabilities.
 
 ## 📄 License
 
